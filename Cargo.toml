@@ -1,0 +1,22 @@
+[package]
+name = "bytestream"
+version = "0.1.0"
+authors = ["Patrik Svensson <patrik@patriksvensson.se>"]
+description = "Provides a convenient way of writing binary data to a buffer."
+license = "MIT"
+repository = "https://github.com/patriksvensson/bytestream-rs"
+keywords = ["byte", "binary", "read", "write"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+byteorder = { version = "1.3.4", optional = true }
+
+[features]
+default = ["std-types"]
+
+## The std-types feature will include support for reading and
+## writing some std types out-of-the-box. This feature adds a 
+## dependency on the byteorder crate.
+std-types = ["byteorder"]
