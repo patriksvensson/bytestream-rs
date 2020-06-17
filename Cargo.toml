@@ -1,6 +1,6 @@
 [package]
 name = "bytestream"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Patrik Svensson <patrik@patriksvensson.se>"]
 description = "Provides a convenient way of writing binary data to a buffer."
 license = "MIT"
