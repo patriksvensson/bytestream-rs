@@ -2,14 +2,14 @@
 This crate provides a convenient way of reading and writing bytes to a buffer
 that implements the standard [`Read`] or [`Write`] traits.
 
-Supported std types include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`], 
+Supported std types include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`],
 [`i16`], [`i32`], [`i64`], [`String`], [`Vec<T>`] and [`HashMap<T, V>`].
 
-Reading and writing of these types is done using the [`byteorder`] 
-crate as big endian. 
-The reason for reading and writing as big endian is that this crate was 
-written with sending data over the network in mind. It should be fairly 
-easy to add support for little endian if anyone would have use for it, 
+Reading and writing of these types is done using the [`byteorder`]
+crate as big endian.
+The reason for reading and writing as big endian is that this crate was
+written with sending data over the network in mind. It should be fairly
+easy to add support for little endian if anyone would have use for it,
 but for now it's big endian only.
 
 # Installation
@@ -66,7 +66,7 @@ assert_eq!(foo, other);
 # Exclude `Streamable` support for std types
 
 If you do not wish to include out-of-the-box support for std types,
-you can exclude the default `batteries-included` feature in your 
+you can exclude the default `batteries-included` feature in your
 `Cargo.toml` file:
 
 ```toml
