@@ -1,19 +1,25 @@
 /*!
-This crate provides a convenient way of writing data to a buffer
+This crate provides a convenient way of reading and writing bytes to a buffer
 that implements the standard [`Read`] or [`Write`] traits.
 
-# Foreign types
+Supported std types include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`], 
+[`i16`], [`i32`], [`i64`], [`String`], [`Vec<T>`] and [`HashMap<T, V>`].
 
-If the `std-types` feature is enabled (which it is by default),
-byte conversion of foreign types is done using the [`byteorder`] crate and all
-data is read and written as big endian. Supported foreign types
-include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`], [`i16`], [`i32`],
-[`i64`], [`String`], [`Vec<T>`] and [`HashMap<T, V>`].
+Reading and writing of these types is done using the [`byteorder`] 
+crate as big endian. 
+The reason for reading and writing as big endian is that this crate was 
+written with sending data over the network in mind. It should be fairly 
+easy to add support for little endian if anyone would have use for it, 
+but for now it's big endian only.
 
-The reason for only supporting big endian data conversion
-is that this crate was written with sending data over the network in mind.
-It should be fairly easy to add support for little endian if anyone would
-have use for it, but for now it's big endian only.
+# Installation
+
+Add the following to your `Cargo.toml` file:
+
+```toml
+[dependencies]
+bytestream = "0.*"
+```
 
 # Examples
 
@@ -42,22 +48,30 @@ impl Streamable for Foo {
     }
 }
 
-// Create a new instance of `Foo`
-let foo = Foo {
-    bar: "corgi".to_owned(),
-    baz: 37
-};
-
-// Write it to a buffer that implements the `Write` trait
+// Create a buffer that implements the `Write` trait
 let mut buffer = Vec::<u8>::new();
+
+// Write some data to the buffer
+let foo = Foo { bar: "corgi".to_owned(), baz: 37 };
 foo.write_to(&mut buffer).unwrap();
 
-// Read it back from the buffer
+// Read the data back from the buffer
 // We wrap the buffer in a Cursor::<T> that implements the `Read` trait
 let mut cursor = Cursor::new(buffer);
 let other = Foo::read_from(&mut cursor).unwrap();
 
 assert_eq!(foo, other);
+```
+
+# Exclude `Streamable` support for std types
+
+If you do not wish to include out-of-the-box support for std types,
+you can exclude the default `batteries-included` feature in your 
+`Cargo.toml` file:
+
+```toml
+[dependencies]
+bytestream = { Version = "0.*", default-features = false }
 ```
 
 # Credits
@@ -81,29 +95,50 @@ The inspiration from this crate came from the [`Stevenarella`] Minecraft client.
 [`Stevenarella`]: https://github.com/iceiix/stevenarella
 */
 
-#[cfg(feature = "std-types")]
+#![deny(missing_docs)]
+#![cfg_attr(not(feature = "batteries-included"), no_std)]
+
+#[cfg(feature = "batteries-included")]
 use std::collections::HashMap;
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 use std::hash::{BuildHasher, Hash};
 use std::io::{Read, Result, Write};
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 /// The streamable trait allows for reading and writing
 /// bytes to and from a buffer.
+///
+/// # Example
+///
+/// ```rust
+/// impl Streamable for Foo {
+///     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
+///         Ok(Self {
+///             bar: String::read_from(buffer)?,
+///             baz: u32::read_from(buffer)?,
+///         })
+///     }
+///     fn write_to<W: Write>(&self, buffer: &mut W) -> Result<()> {
+///         self.bar.write_to(buffer)?;
+///         self.baz.write_to(buffer)?;
+///         Ok(())
+///     }
+/// }
+/// ```
 pub trait Streamable: Sized {
-    /// Reads an object from the buffer.
+    /// Reads something from the specified buffer.
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self>;
 
-    /// Writes the object to the buffer.
+    /// Writes something to the specified buffer.
     fn write_to<W: Write>(&self, buffer: &mut W) -> Result<()>;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // Boolean
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for bool {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_u8()? == 1)
@@ -118,7 +153,7 @@ impl Streamable for bool {
 //////////////////////////////////////////////////////////////////////////////
 // Unsigned integers
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for u64 {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_u64::<BigEndian>()?)
@@ -130,7 +165,7 @@ impl Streamable for u64 {
     }
 }
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for u32 {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_u32::<BigEndian>()?)
@@ -142,7 +177,7 @@ impl Streamable for u32 {
     }
 }
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for u16 {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_u16::<BigEndian>()?)
@@ -154,7 +189,7 @@ impl Streamable for u16 {
     }
 }
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for u8 {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_u8()?)
@@ -169,7 +204,7 @@ impl Streamable for u8 {
 //////////////////////////////////////////////////////////////////////////////
 // Signed integers
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for i64 {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_i64::<BigEndian>()?)
@@ -181,7 +216,7 @@ impl Streamable for i64 {
     }
 }
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for i32 {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_i32::<BigEndian>()?)
@@ -193,7 +228,7 @@ impl Streamable for i32 {
     }
 }
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for i16 {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_i16::<BigEndian>()?)
@@ -205,7 +240,7 @@ impl Streamable for i16 {
     }
 }
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for i8 {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         Ok(buffer.read_i8()?)
@@ -218,9 +253,9 @@ impl Streamable for i8 {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Collections
+// String
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl Streamable for String {
     fn read_from<R: std::io::Read>(buffer: &mut R) -> Result<Self> {
         let len = u16::read_from(buffer)?; // TODO: Use 7-bit encoded size
@@ -240,7 +275,7 @@ impl Streamable for String {
 //////////////////////////////////////////////////////////////////////////////
 // Collections
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl<T: Streamable> Streamable for Vec<T> {
     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
         let count = buffer.read_u16::<BigEndian>()?; // TODO: Use 7-bit encoded size
@@ -260,7 +295,7 @@ impl<T: Streamable> Streamable for Vec<T> {
     }
 }
 
-#[cfg(feature = "std-types")]
+#[cfg(feature = "batteries-included")]
 impl<T: Streamable + Eq + Hash, V: Streamable, S: BuildHasher + Default> Streamable
     for HashMap<T, V, S>
 {

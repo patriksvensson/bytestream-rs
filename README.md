@@ -3,6 +3,29 @@
 This crate provides a convenient way of reading and writing bytes to a buffer
 that implements the standard [`Read`] or [`Write`] traits.
 
+Supported std types include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`], 
+[`i16`], [`i32`], [`i64`], [`String`], [`Vec<T>`] and [`HashMap<T, V>`].
+
+Reading and writing of these types is done using the [`byteorder`] 
+crate as big endian. 
+The reason for reading and writing as big endian is that this crate was 
+written with sending data over the network in mind. It should be fairly 
+easy to add support for little endian if anyone would have use for it, 
+but for now it's big endian only.
+
+## Installation
+
+Add the following to your `Cargo.toml` file:
+
+```toml
+[dependencies]
+bytestream = "0.*"
+```
+
+## Documentation
+
+You can find the documentation at: https://docs.rs/bytestream
+
 ## Examples
 
 ```rust
@@ -48,18 +71,16 @@ let other = Foo::read_from(&mut cursor).unwrap();
 assert_eq!(foo, other);
 ```
 
-## The `std-types` feature
+## Exclude `Streamable` support for std types
 
-If the `std-types` feature is enabled (which it is by default),
-byte conversion of foreign types is done using the [`byteorder`] crate and all
-data is read and written as big endian. Supported std types
-include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`], [`i16`], [`i32`],
-[`i64`], [`String`], [`Vec<T>`] and [`HashMap<T, V>`].
+If you do not wish to include out-of-the-box support for std types,
+you can exclude the default `batteries-included` feature in your 
+`Cargo.toml` file:
 
-The reason for only supporting big endian data conversion
-is that this crate was written with sending data over the network in mind.
-It should be fairly easy to add support for little endian if anyone would
-have use for it, but for now it's big endian only.
+```toml
+[dependencies]
+bytestream = { Version = "0.*", default-features = false }
+```
 
 ## Credits
 
