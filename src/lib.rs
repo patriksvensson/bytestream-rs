@@ -112,7 +112,15 @@ use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
+/// use std::io::{Read, Result, Write};
+/// use bytestream::Streamable;
+///
+/// pub struct Foo {
+///     bar: String,
+///     baz: u32,
+/// }
+///
 /// impl Streamable for Foo {
 ///     fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
 ///         Ok(Self {
