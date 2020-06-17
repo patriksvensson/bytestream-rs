@@ -6,12 +6,7 @@ that implements the standard [`Read`] or [`Write`] traits.
 Supported std types include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`], 
 [`i16`], [`i32`], [`i64`], [`String`], [`Vec<T>`] and [`HashMap<T, V>`].
 
-Reading and writing of these types is done using the [`byteorder`] 
-crate as big endian. 
-The reason for reading and writing as big endian is that this crate was 
-written with sending data over the network in mind. It should be fairly 
-easy to add support for little endian if anyone would have use for it, 
-but for now it's big endian only.
+Reading and writing of these types is done using the [`byteorder`] crate.
 
 ## Installation
 
@@ -30,7 +25,7 @@ You can find the documentation at: https://docs.rs/bytestream
 
 ```rust
 use std::io::{Cursor, Read, Result, Write};
-use bytestream::Streamable;
+use bytestream::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Foo {
@@ -39,34 +34,31 @@ pub struct Foo {
 }
 
 impl Streamable for Foo {
-    fn read_from<R: Read>(buffer: &mut R) -> Result<Self> {
+    fn read_from<R: Read>(buffer: &mut R, order: ByteOrder) -> Result<Self> {
         Ok(Self {
-            bar: String::read_from(buffer)?,
-            baz: u32::read_from(buffer)?,
+            bar: String::read_from(buffer, order)?,
+            baz: u32::read_from(buffer, order)?,
         })
     }
 
-    fn write_to<W: Write>(&self, buffer: &mut W) -> Result<()> {
-        self.bar.write_to(buffer)?;
-        self.baz.write_to(buffer)?;
+    fn write_to<W: Write>(&self, buffer: &mut W, order: ByteOrder) -> Result<()> {
+        self.bar.write_to(buffer, order)?;
+        self.baz.write_to(buffer, order)?;
         Ok(())
     }
 }
 
-// Create a new instance of `Foo`
-let foo = Foo {
-    bar: "corgi".to_owned(),
-    baz: 37
-};
-
-// Write it to a buffer that implements the `Write` trait
+// Create a buffer that implements the `Write` trait
 let mut buffer = Vec::<u8>::new();
-foo.write_to(&mut buffer).unwrap();
 
-// Read it back from the buffer
+// Write some data to the buffer
+let foo = Foo { bar: "corgi".to_owned(), baz: 37 };
+foo.write_to(&mut buffer, ByteOrder::BigEndian).unwrap();
+
+// Read the data back from the buffer
 // We wrap the buffer in a Cursor::<T> that implements the `Read` trait
 let mut cursor = Cursor::new(buffer);
-let other = Foo::read_from(&mut cursor).unwrap();
+let other = Foo::read_from(&mut cursor, ByteOrder::BigEndian).unwrap();
 
 assert_eq!(foo, other);
 ```
@@ -81,6 +73,9 @@ you can exclude the default `batteries-included` feature in your
 [dependencies]
 bytestream = { Version = "0.*", default-features = false }
 ```
+
+Exluding the `batteries-included` feature will also remove
+the `byteorder` crate dependency.
 
 ## Credits
 
