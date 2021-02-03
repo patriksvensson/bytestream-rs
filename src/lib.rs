@@ -13,7 +13,7 @@ Add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-bytestream = "0.*"
+bytestream = "0.4"
 ```
 
 # Examples
@@ -68,7 +68,7 @@ you can exclude the default feature in your
 
 ```toml
 [dependencies]
-bytestream = { Version = "0.*", default-features = false }
+bytestream = { Version = "0.4", default-features = false }
 ```
 
 Exluding the default feature will also remove

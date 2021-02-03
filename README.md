@@ -1,27 +1,21 @@
-# bytestream
-
 This crate provides a convenient way of reading and writing bytes to a buffer
 that implements the standard [`Read`] or [`Write`] traits.
 
-Supported std types include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`], 
-[`i16`], [`i32`], [`i64`], [`String`], [`Vec<T>`] and [`HashMap<T, V>`].
+Supported std types include [`u8`], [`u16`], [`u32`], [`u64`], [`i8`],
+[`i16`], [`i32`] and [`i64`].
 
 Reading and writing of these types is done using the [`byteorder`] crate.
 
-## Installation
+# Installation
 
 Add the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-bytestream = "0.*"
+bytestream = "0.4"
 ```
 
-## Documentation
-
-You can find the documentation at: https://docs.rs/bytestream
-
-## Examples
+# Examples
 
 ```rust
 use std::io::{Cursor, Read, Result, Write};
@@ -29,18 +23,20 @@ use bytestream::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Foo {
-    bar: String,
+    bar: bool,
     baz: u32,
 }
 
-impl Streamable for Foo {
+impl StreamReader for Foo {
     fn read_from<R: Read>(buffer: &mut R, order: ByteOrder) -> Result<Self> {
         Ok(Self {
-            bar: String::read_from(buffer, order)?,
+            bar: bool::read_from(buffer, order)?,
             baz: u32::read_from(buffer, order)?,
         })
     }
+}
 
+impl StreamWriter for Foo {
     fn write_to<W: Write>(&self, buffer: &mut W, order: ByteOrder) -> Result<()> {
         self.bar.write_to(buffer, order)?;
         self.baz.write_to(buffer, order)?;
@@ -52,7 +48,7 @@ impl Streamable for Foo {
 let mut buffer = Vec::<u8>::new();
 
 // Write some data to the buffer
-let foo = Foo { bar: "corgi".to_owned(), baz: 37 };
+let foo = Foo { bar: true, baz: 37 };
 foo.write_to(&mut buffer, ByteOrder::BigEndian).unwrap();
 
 // Read the data back from the buffer
@@ -63,21 +59,21 @@ let other = Foo::read_from(&mut cursor, ByteOrder::BigEndian).unwrap();
 assert_eq!(foo, other);
 ```
 
-## Exclude `Streamable` support for std types
+# Exclude streamable support for std types
 
 If you do not wish to include out-of-the-box support for std types,
-you can exclude the default `batteries-included` feature in your 
+you can exclude the default feature in your
 `Cargo.toml` file:
 
 ```toml
 [dependencies]
-bytestream = { Version = "0.*", default-features = false }
+bytestream = { Version = "0.4", default-features = false }
 ```
 
-Exluding the `batteries-included` feature will also remove
+Exluding the default feature will also remove
 the `byteorder` crate dependency.
 
-## Credits
+# Credits
 
 The inspiration from this crate came from the [`Stevenarella`] Minecraft client.
 
@@ -92,7 +88,4 @@ The inspiration from this crate came from the [`Stevenarella`] Minecraft client.
 [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
 [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
-[`String`]: https://doc.rust-lang.org/std/string/struct.String.html
-[`Vec<T>`]: https://doc.rust-lang.org/std/vec/struct.Vec.html
-[`HashMap<T, V>`]: https://doc.rust-lang.org/std/collections/struct.HashMap.html
 [`Stevenarella`]: https://github.com/iceiix/stevenarella
